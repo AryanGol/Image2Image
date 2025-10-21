@@ -1,48 +1,142 @@
-# Image2Image
-# 🧠 U-Net for Image-to-Image Translation
+# 🧠 VGG16-U-Net for DICOM Image-to-Image Translation (NAC → MAC)
 
-This repository contains a Jupyter Notebook implementation of a **U-Net convolutional neural network** for **image-to-image translation** — a deep learning approach that learns to map an input image to a corresponding output image.  
-It can be applied to tasks such as **image segmentation**, **denoising**, **super-resolution**, **style transfer**, or **satellite-to-map** translation.
+This repository implements a VGG16-based U-Net for image-to-image translation on medical DICOM images, transforming Non-Attenuation-Corrected (NAC) PET images into Attenuation-Corrected (MAC) PET images. The workflow includes DICOM handling, normalization, data augmentation, model definition, training, and performance visualization.
 
 ---
 
-## 🚀 Overview
+## 🩻 Overview
 
-The notebook implements:
-- A **U-Net architecture** with encoder–decoder structure and skip connections.  
-- **Image preprocessing and augmentation** for training stability.  
-- **Model training** using PyTorch or TensorFlow (depending on implementation).  
-- **Visualization of predictions** to assess translation quality.  
-- **Loss and metric tracking** during training.  
-
----
-
-## 📘 File Description
-
-| File | Description |
-|------|--------------|
-| `7b612420-0223-4804-8bef-c8d1296cf63f.ipynb` | Main notebook implementing and training the U-Net model. |
-| `data/` *(optional)* | Directory for input and output images used in training and testing. |
-| `results/` *(optional)* | Folder for generated outputs, model weights, and visualizations. |
+The pipeline:
+1. Loads and preprocesses DICOM images from two folders:
+   - Unzipped_Mix/Mix/NAC (inputs)
+   - Unzipped_Mix/Mix/MAC (targets)
+2. Computes a global maximum pixel value for normalization across all slices.
+3. Converts 2D grayscale slices into 3-channel RGB arrays.
+4. Performs data augmentation using ImageDataGenerator.
+5. Builds a VGG16-based U-Net with skip connections for image reconstruction.
+6. Defines evaluation metrics — Dice, MAE, SSIM, and PSNR.
+7. Trains and evaluates the model on the NAC→MAC translation task.
+8. Visualizes predicted vs. ground-truth images and difference maps.
 
 ---
 
-## 🧩 U-Net Architecture
+## 📁 Directory Structure
 
-The **U-Net** consists of:
-- **Encoder (Contracting Path):** successive convolutional + pooling layers capturing context.  
-- **Decoder (Expanding Path):** upsampling layers reconstructing spatial resolution.  
-- **Skip connections** linking encoder and decoder layers for fine-grained detail recovery.  
-
-<p align="center">
-  <img src="https://raw.githubusercontent.com/AryanGol/min-cluster-items-sensitivity/main/gpt2.png" width="600" alt="U-Net architecture illustration">
-</p>
+Unzipped_Mix/
+└── Mix/
+    ├── NAC/   # Non-attenuation-corrected DICOM images (inputs)
+    └── MAC/   # Attenuation-corrected DICOM images (targets)
+Unzipped_Test_Mix/
+└── Mix/
+    ├── NAC/   # Test NAC images
+    └── MAC/   # Test MAC images
 
 ---
 
-## ⚙️ Setup Instructions
+## ⚙️ Requirements
 
-### 1️⃣ Clone the repository
-```bash
-git clone https://github.com/AryanGol/<your-repo-name>.git
-cd <your-repo-name>
+Install dependencies (Python ≥ 3.8 recommended):
+
+pip install tensorflow numpy pydicom scikit-image matplotlib opencv-python tqdm
+
+Optional:
+pip install keras
+
+---
+
+## 🧩 Model Architecture
+
+- Encoder: Pretrained VGG16 (ImageNet weights, frozen) as feature extractor
+- Decoder: Transposed convolutions + skip connections for upsampling
+- Output: 3-channel image reconstructed via sigmoid activation
+
+---
+
+## 🧮 Data Preparation
+
+The script reads all .dcm files from NAC and MAC directories:
+
+files_nac = sorted([f for f in os.listdir(NAC_PATH) if f.endswith('.dcm')])
+files_mac = sorted([f for f in os.listdir(MAC_PATH) if f.endswith('.dcm')])
+
+- Calculates the global maximum intensity across both datasets.
+- Normalizes each slice by dividing pixel values by this global_max.
+- Expands grayscale images to 3 channels (RGB).
+
+---
+
+## 🧠 Data Augmentation
+
+datagen = ImageDataGenerator(
+    rotation_range=15,
+    width_shift_range=0.1,
+    height_shift_range=0.1,
+    shear_range=0.1,
+    zoom_range=0.1,
+    fill_mode='constant'
+)
+datagen.fit(X_train)
+
+---
+
+## 🧪 Evaluation Metrics
+
+Metric | Description
+-------|-------------
+Dice Coefficient | Measures overlap between predicted and true masks
+MAE (Mean Absolute Error) | 1 - mean(|y_true - y_pred|)
+SSIM (Structural Similarity) | Measures perceptual similarity between images
+PSNR (Peak Signal-to-Noise Ratio) | Quantifies reconstruction fidelity
+
+---
+
+## 🏗️ Model Definition (VGG16 + U-Net Decoder)
+
+The model uses VGG16 as the encoder and builds U-Net-like decoder layers with skip connections.
+
+from tensorflow.keras.applications.vgg16 import VGG16
+from tensorflow.keras.layers import Conv2D, Conv2DTranspose, concatenate, BatchNormalization, Dropout
+
+vgg16 = VGG16(weights='imagenet', include_top=False, input_shape=(256, 256, 3))
+vgg16.trainable = False
+
+Loss and optimizer:
+
+model2.compile(optimizer=Adam(lr=0.001), loss='MSE', metrics=['accuracy'])
+
+---
+
+## 📈 Training Visualization
+
+After training, loss curves are plotted:
+
+plt.plot(results2.history['loss'])
+plt.plot(results2.history['val_loss'])
+plt.legend(['loss','val_loss'])
+plt.show()
+
+---
+
+## 🧾 Testing and Visualization
+
+For each test DICOM image, the script:
+- Predicts the MAC image from NAC input.
+- Displays NAC, Predicted, Ground Truth, and Difference Map side by side.
+
+---
+
+## 📊 Output
+
+- X_train, Y_train arrays (augmented, normalized)
+- predicted_images_12: Predicted outputs from the trained model
+- Matplotlib visualizations of prediction results
+
+---
+
+## 🧑‍💻 Author
+
+Aryan Golzaryan  
+📧 aryan.golzaryan@gmail.com
+
+---
+
