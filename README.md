@@ -1,10 +1,10 @@
-# 🧠 VGG16-U-Net for DICOM Image-to-Image Translation (NAC → MAC)
+#  VGG16-U-Net for DICOM Image-to-Image Translation (NAC → MAC)
 
 This repository implements a VGG16-based U-Net for image-to-image translation on medical DICOM images, transforming Non-Attenuation-Corrected (NAC) PET images into Attenuation-Corrected (MAC) PET images. The workflow includes DICOM handling, normalization, data augmentation, model definition, training, and performance visualization.
 
 ---
 
-## 🩻 Overview
+##  Overview
 
 The pipeline:
 1. Loads and preprocesses DICOM images from two folders:
@@ -20,7 +20,7 @@ The pipeline:
 
 ---
 
-## 📁 Directory Structure
+##  Directory Structure
 
 Unzipped_Mix/
 └── Mix/
@@ -44,7 +44,7 @@ pip install keras
 
 ---
 
-## 🧩 Model Architecture
+##  Model Architecture
 
 - Encoder: Pretrained VGG16 (ImageNet weights, frozen) as feature extractor
 - Decoder: Transposed convolutions + skip connections for upsampling
@@ -52,7 +52,7 @@ pip install keras
 
 ---
 
-## 🧮 Data Preparation
+##  Data Preparation
 
 The script reads all .dcm files from NAC and MAC directories:
 
@@ -65,7 +65,7 @@ files_mac = sorted([f for f in os.listdir(MAC_PATH) if f.endswith('.dcm')])
 
 ---
 
-## 🧠 Data Augmentation
+##  Data Augmentation
 
 datagen = ImageDataGenerator(
     rotation_range=15,
@@ -79,7 +79,7 @@ datagen.fit(X_train)
 
 ---
 
-## 🧪 Evaluation Metrics
+##  Evaluation Metrics
 
 Metric | Description
 -------|-------------
@@ -90,7 +90,7 @@ PSNR (Peak Signal-to-Noise Ratio) | Quantifies reconstruction fidelity
 
 ---
 
-## 🏗️ Model Definition (VGG16 + U-Net Decoder)
+##  Model Definition (VGG16 + U-Net Decoder)
 
 The model uses VGG16 as the encoder and builds U-Net-like decoder layers with skip connections.
 
@@ -106,7 +106,7 @@ model2.compile(optimizer=Adam(lr=0.001), loss='MSE', metrics=['accuracy'])
 
 ---
 
-## 📈 Training Visualization
+##  Training Visualization
 
 After training, loss curves are plotted:
 
@@ -117,7 +117,7 @@ plt.show()
 
 ---
 
-## 🧾 Testing and Visualization
+##  Testing and Visualization
 
 For each test DICOM image, the script:
 - Predicts the MAC image from NAC input.
@@ -125,7 +125,7 @@ For each test DICOM image, the script:
 
 ---
 
-## 📊 Output
+##  Output
 
 - X_train, Y_train arrays (augmented, normalized)
 - predicted_images_12: Predicted outputs from the trained model
@@ -133,10 +133,10 @@ For each test DICOM image, the script:
 
 ---
 
-## 🧑‍💻 Author
+##  Author
 
 Aryan Golzaryan  
-📧 aryan.golzaryan@gmail.com
+ aryan.golzaryan@gmail.com
 
 ---
 
